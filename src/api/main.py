@@ -9,7 +9,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://ecdotica.com", "http://localhost:3000"],
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
 
@@ -24,5 +24,5 @@ async def analyze_text(request: TextAnalysisRequest):
     return {
         "word_count": len(words),
         "char_count": len(request.text),
-        "message": "NLP analysis - to be enhanced with spaCy"
+        "message": "NLP analysis - to be enhanced with spaCy",
     }
