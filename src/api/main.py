@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
 
 app = FastAPI(title="Ecdotica API", version="1.0.0")
 
@@ -11,9 +12,11 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+
 class TextAnalysisRequest(BaseModel):
     text: str
     options: dict = {}
+
 
 @app.post("/api/v1/text/analyze")
 async def analyze_text(request: TextAnalysisRequest):
@@ -22,19 +25,4 @@ async def analyze_text(request: TextAnalysisRequest):
         "word_count": len(words),
         "char_count": len(request.text),
         "message": "NLP analysis - to be enhanced with spaCy"
-    }
-
-@app.get("/health")
-async def health_check():
-    return {
-        "status": "healthy", 
-        "version": "1.0.0"
-    }
-
-@app.get("/")
-async def root():
-    return {
-        "message": "Ecdotica API - Editorial Digital Platform",
-        "docs": "/docs",
-        "health": "/health"
     }
