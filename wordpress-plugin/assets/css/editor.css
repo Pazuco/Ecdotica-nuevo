@@ -1,0 +1,155 @@
+/**
+ * Ecdotica AI Assistant - Editor Styles
+ * Estilos para el panel lateral del asistente IA en el editor de WordPress
+ */
+
+/* Panel principal */
+.ecdotica-ai-sidebar {
+    padding: 16px;
+}
+
+/* Análisis de texto */
+.ecdotica-analysis {
+    background: #f0f0f1;
+    border-left: 4px solid #2271b1;
+    padding: 12px;
+    margin-top: 12px;
+    border-radius: 4px;
+}
+
+.ecdotica-analysis p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.ecdotica-analysis strong {
+    color: #1d2327;
+    font-weight: 600;
+}
+
+.ecdotica-analysis em {
+    color: #646970;
+    font-size: 13px;
+}
+
+/* Sugerencias editoriales */
+.ecdotica-suggestions {
+    margin-top: 12px;
+}
+
+.ecdotica-suggestion-item {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-left: 4px solid #d63638;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.ecdotica-suggestion-item p {
+    margin: 4px 0;
+    font-size: 13px;
+}
+
+.ecdotica-suggestion-item strong {
+    color: #d63638;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+/* Blockchain */
+.ecdotica-blockchain {
+    background: #f0f6fc;
+    border-left: 4px solid #0071a1;
+    padding: 12px;
+    margin-top: 12px;
+    border-radius: 4px;
+}
+
+.ecdotica-blockchain p {
+    margin: 8px 0;
+    font-size: 13px;
+}
+
+.ecdotica-blockchain strong {
+    color: #0071a1;
+    font-weight: 600;
+}
+
+/* Botones */
+.ecdotica-ai-sidebar .components-button.is-primary {
+    background: #2271b1;
+    border-color: #2271b1;
+    color: #fff;
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.ecdotica-ai-sidebar .components-button.is-primary:hover {
+    background: #135e96;
+    border-color: #135e96;
+}
+
+.ecdotica-ai-sidebar .components-button.is-primary:disabled {
+    background: #dcdcde !important;
+    border-color: #dcdcde !important;
+    color: #a7aaad !important;
+    cursor: not-allowed;
+}
+
+/* Spinner */
+.ecdotica-ai-sidebar .components-spinner {
+    margin: 0;
+}
+
+/* PanelBody */
+.ecdotica-ai-sidebar .components-panel__body {
+    border-top: 1px solid #dcdcde;
+}
+
+.ecdotica-ai-sidebar .components-panel__body-title {
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 781px) {
+    .ecdotica-analysis,
+    .ecdotica-suggestion-item,
+    .ecdotica-blockchain {
+        padding: 10px;
+    }
+    
+    .ecdotica-analysis p,
+    .ecdotica-suggestion-item p,
+    .ecdotica-blockchain p {
+        font-size: 12px;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ecdotica-analysis,
+.ecdotica-suggestion-item,
+.ecdotica-blockchain {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Estados de carga */
+.ecdotica-ai-sidebar .is-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
