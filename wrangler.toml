@@ -1,32 +1,35 @@
 # Configuración de Cloudflare Workers para la API de Ecdotica
-# Este archivo define cómo se despliega la aplicación FastAPI en Cloudflare Workers
 
 name = "ecdotica-api"
 main = "src/api/main.py"
 compatibility_date = "2025-11-19"
-
-# Configuración del Worker
 workers_dev = true
 
-# Variables de entorno (puedes agregar más según necesites)
+# Variables comunes (globales)
 [vars]
-ENVIRONMENT = "production"
 API_VERSION = "1.0.1"
 
-# Configuración de CORS (ya está en main.py, pero puedes sobrescribir aquí)
-# CORS_ORIGINS = "https://ecdotica.com,https://www.ecdotica.com"
-
-# Configuración de producción
+# Variables y configuración para entorno de producción
 [env.production]
 name = "ecdotica-api"
 route = { pattern = "api.ecdotica.com/*", zone_name = "ecdotica.com" }
 
-# Nota: Para usar un dominio personalizado (api.ecdotica.com),
-# necesitas:
-# 1. Tener el dominio ecdotica.com en Cloudflare
-# 2. Configurar el DNS para apuntar a tu Worker
-# 3. Ejecutar: wrangler deploy --env production
+[env.production.vars]
+ENVIRONMENT = "production"
+DATABASE_URL = "URL_de_producción" # Ejemplo si usas DB
 
-# Para desarrollo/testing, simplemente usa:
-# wrangler deploy
-# Esto te dará una URL como: https://ecdotica-api.tu-cuenta.workers.dev
+# Variables y configuración para entorno de desarrollo
+[env.dev]
+name = "ecdotica-api-dev"
+# Puedes dejar sin route para usar workers.dev
+
+[env.dev.vars]
+ENVIRONMENT = "development"
+DATABASE_URL = "URL_de_testing"
+
+# Otros ejemplos de sección de CORS (deshabilitada por defecto)
+# [env.production.vars]
+# CORS_ORIGINS = "https://ecdotica.com,https://www.ecdotica.com"
+
+# [env.dev.vars]
+# CORS_ORIGINS = "*"
