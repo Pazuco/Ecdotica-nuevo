@@ -11,7 +11,7 @@ workers_dev = true
 # Variables de entorno (puedes agregar más según necesites)
 [vars]
 ENVIRONMENT = "production"
-API_VERSION = "1.0.0"
+API_VERSION = "1.0.1"
 
 # Configuración de CORS (ya está en main.py, pero puedes sobrescribir aquí)
 # CORS_ORIGINS = "https://ecdotica.com,https://www.ecdotica.com"
