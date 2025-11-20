@@ -15,6 +15,15 @@ flake8
 black
 mypy
 
+# File processing
+python-multipart==0.0.9
+PyPDF2==3.0.1
+python-docx==1.1.0
+pillow==10.3.0
+
+# WordPress integration
+requests==2.31.0
+
 # NLP Dependencies (OPCIÓN A)
 spacy==3.7.2
 transformers==4.35.2
