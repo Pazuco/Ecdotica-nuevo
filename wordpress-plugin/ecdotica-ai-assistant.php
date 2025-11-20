@@ -21,6 +21,25 @@ define('ECDOTICA_AI_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ECDOTICA_AI_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('ECDOTICA_API_URL', 'https://api.ecdotica.workers.dev');
 
+// Incluir archivos del plugin
+require_once ECDOTICA_AI_PLUGIN_DIR . '/config.php';
+require_once ECDOTICA_AI_PLUGIN_DIR . '/admin-page.php';
+
+// Registrar página de administración
+add_action('admin_menu', 'ecdotica_add_admin_menu');
+
+function ecdotica_add_admin_menu() {
+    add_menu_page(
+        'Ecdotica - Análisis de Manuscritos',
+        'Ecdotica',
+        'edit_posts',
+        'ecdotica-analyzer',
+        'ecdotica_render_admin_page',
+        'dashicons-analytics',
+        30
+    );
+}
+
 class Ecdotica_AI_Assistant {
     
     private static $instance = null;
