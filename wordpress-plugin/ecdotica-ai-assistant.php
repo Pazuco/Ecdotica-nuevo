@@ -19,8 +19,6 @@ if (!defined('ABSPATH')) {
 define('ECDOTICA_AI_VERSION', '1.0.0');
 define('ECDOTICA_AI_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ECDOTICA_AI_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('ECDOTICA_API_URL', 'https://api.ecdotica.workers.dev');
-
 // Incluir archivos del plugin
 require_once ECDOTICA_AI_PLUGIN_DIR . '/config.php';
 require_once ECDOTICA_AI_PLUGIN_DIR . '/admin-page.php';
