@@ -223,7 +223,39 @@ function ecdotica_process_manuscript($file) {
     if (!$result || !isset($result['statistics'])) {
         return new WP_Error('api_error', 'Respuesta inválida de la API.');
     }
-    
+
+            
+        // Guardar en base de datos
+        $manager = new Ecdotica_Manuscript_Manager();
+        
+        // Guardar manuscrito
+        $manuscript_data = array(
+            'title' => sanitize_text_field($_FILES['manuscript_file']['name']),
+            'author' => 'Autor desconocido', // TODO: campo de autor en formulario
+            'original_filename' => $_FILES['manuscript_file']['name'],
+            'file_path' => $upload['file'],
+            'file_type' => $upload['type'],
+            'file_size' => $upload['size'],
+            'notes' => ''
+        );
+        $manuscript_id = $manager->save_manuscript($manuscript_data);
+        
+        // Guardar análisis
+        if ($manuscript_id) {
+            $analysis_data = array(
+                'word_count' => $result['statistics']['words'],
+                'sentence_count' => $result['statistics']['sentences'],
+                'paragraph_count' => $result['statistics']['paragraphs'],
+                'quality_score' => $result['statistics']['quality_score'],
+                'decision' => $result['decision'],
+                'message' => $result['message'],
+                'problems' => implode(', ', $result['problems']),
+                'avg_words_per_sentence' => round($result['statistics']['words'] / max($result['statistics']['sentences'], 1), 2),
+                'avg_words_per_paragraph' => round($result['statistics']['words'] / max($result['statistics']['paragraphs'], 1), 2),
+                'readability_score' => 0 // TODO: calcular
+            );
+            $manager->save_analysis($manuscript_id, $analysis_data);
+        }
     return $result;
 }
 ?>
