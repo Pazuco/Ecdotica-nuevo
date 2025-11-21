@@ -12,7 +12,7 @@ from datetime import datetime
 import re
 import uuid
 from io import BytesIO
-import PyPDF2
+import pypdf
 from docx import Document
 
 # Configuración de la API
@@ -73,7 +73,7 @@ def extract_text_from_pdf(file_content: bytes) -> str:
     """Extrae texto de un archivo PDF"""
     try:
         pdf_file = BytesIO(file_content)
-        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        pdf_reader = pypdf.PdfReader(pdf_file)
         text = ""
         for page in pdf_reader.pages:
             text += page.extract_text() + "\n\n"
