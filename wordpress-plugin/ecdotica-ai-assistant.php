@@ -132,5 +132,6 @@ function ecdotica_ai_init() {
 add_action('plugins_loaded', 'ecdotica_ai_init');
 
 register_activation_hook(__FILE__, function() {
-    add_option('ecdotica_ai_auto_blockchain', 'no');
+    add_op
+            Ecdotica_Database::create_tables();tion('ecdotica_ai_auto_blockchain', 'no');
 });  
