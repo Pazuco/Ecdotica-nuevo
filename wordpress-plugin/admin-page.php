@@ -151,6 +151,79 @@ function ecdotica_render_admin_page() {
                 <li><strong>Uso interno:</strong> Solo para el equipo editorial de Nuevo Milenio</li>
             </ul>
         </div>
+
+            <?php
+    // Obtener historial de manuscritos
+    $manager = new Ecdotica_Manuscript_Manager();
+    $manuscripts = $manager->get_all_manuscripts(20); // Últimos 20
+    ?>
+    
+    <?php if (!empty($manuscripts)): ?>
+    <div class="ecdotica-history" style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; border-radius: 4px; margin: 20px 0;">
+        <h2>📋 Historial de Análisis</h2>
+        <p style="margin-bottom: 15px;">Manuscritos analizados recientemente</p>
+        
+        <table class="widefat" style="margin-top: 10px;">
+            <thead>
+                <tr>
+                    <th style="padding: 10px;">Título</th>
+                    <th style="padding: 10px;">Autor</th>
+                    <th style="padding: 10px;">Fecha</th>
+                    <th style="padding: 10px;">Estado</th>
+                    <th style="padding: 10px;">Calidad</th>
+                    <th style="padding: 10px;">Palabras</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($manuscripts as $manuscript): ?>
+                    <?php $analysis = $manager->get_latest_analysis($manuscript->id); ?>
+                    <tr>
+                        <td style="padding: 10px;">
+                            <strong><?php echo esc_html($manuscript->title); ?></strong>
+                        </td>
+                        <td style="padding: 10px;">
+                            <?php echo esc_html($manuscript->author); ?>
+                        </td>
+                        <td style="padding: 10px;">
+                            <?php echo date('d/m/Y', strtotime($manuscript->upload_date)); ?>
+                        </td>
+                        <td style="padding: 10px;">
+                            <?php
+                            $status_badges = [
+                                'accepted' => '<span style="background: #d4edda; color: #155724; padding: 3px 8px; border-radius: 3px; font-size: 12px;">✓ Aceptado</span>',
+                                'review' => '<span style="background: #fff3cd; color: #856404; padding: 3px 8px; border-radius: 3px; font-size: 12px;">⚠ Revisión</span>',
+                                'rejected' => '<span style="background: #f8d7da; color: #721c24; padding: 3px 8px; border-radius: 3px; font-size: 12px;">✗ Rechazado</span>',
+                                'pending' => '<span style="background: #e7f3ff; color: #004085; padding: 3px 8px; border-radius: 3px; font-size: 12px;">⏳ Pendiente</span>'
+                            ];
+                            echo $status_badges[$manuscript->status] ?? $status_badges['pending'];
+                            ?>
+                        </td>
+                        <td style="padding: 10px;">
+                            <?php if ($analysis): ?>
+                                <strong style="color: <?php 
+                                    if ($analysis->quality_score >= 80) echo '#28a745';
+                                    elseif ($analysis->quality_score >= 60) echo '#ffc107';
+                                    else echo '#dc3545';
+                                ?>">
+                                    <?php echo $analysis->quality_score; ?>/100
+                                </strong>
+                            <?php else: ?>
+                                <span style="color: #999;">-</span>
+                            <?php endif; ?>
+                        </td>
+                        <td style="padding: 10px;">
+                            <?php if ($analysis): ?>
+                                <?php echo number_format($analysis->word_count); ?>
+                            <?php else: ?>
+                                <span style="color: #999;">-</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
     </div>
     
     <script>
