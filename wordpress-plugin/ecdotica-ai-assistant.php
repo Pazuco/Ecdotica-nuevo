@@ -3,7 +3,7 @@
  * Plugin Name: Ecdotica AI Assistant
  * Plugin URI: https://github.com/Pazuco/Ecdotica-nuevo
  * Description: Asistente de IA para análisis textual, sugerencias editoriales y registro blockchain
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Editorial Nuevo Milenio
  * Author URI: https://ecdotica.com
  * License: GPL v2 or later
@@ -16,11 +16,14 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes
-define('ECDOTICA_AI_VERSION', '1.0.0');
+define('ECDOTICA_AI_VERSION', '1.1.0');
 define('ECDOTICA_AI_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ECDOTICA_AI_PLUGIN_URL', plugin_dir_url(__FILE__));
+
 // Incluir archivos del plugin
 require_once ECDOTICA_AI_PLUGIN_DIR . '/config.php';
+require_once ECDOTICA_AI_PLUGIN_DIR . '/database-setup.php';
+require_once ECDOTICA_AI_PLUGIN_DIR . '/manuscript-manager.php';
 require_once ECDOTICA_AI_PLUGIN_DIR . '/admin-page.php';
 
 // Registrar página de administración
@@ -55,6 +58,25 @@ class Ecdotica_AI_Assistant {
         add_action('wp_ajax_ecdotica_get_suggestions', array($this, 'ajax_get_suggestions'));
         add_action('wp_ajax_ecdotica_register_blockchain', array($this, 'ajax_register_blockchain'));
         add_action('publish_post', array($this, 'on_publish_post'), 10, 2);
+        
+        // Verificar y actualizar esquema de base de datos si es necesario
+        add_action('admin_init', array($this, 'check_database_update'));
+    }
+    
+    /**
+     * Verificar si la base de datos necesita actualización
+     */
+    public function check_database_update() {
+        $current_version = get_option('ecdotica_db_version', '1.0.0');
+        $target_version = '1.1.0';
+        
+        if (version_compare($current_version, $target_version, '<')) {
+            // Actualizar esquema
+            Ecdotica_Database::update_schema();
+            update_option('ecdotica_db_version', $target_version);
+            
+            error_log('Ecdotica: Base de datos actualizada a versión ' . $target_version);
+        }
     }
     
     public function enqueue_editor_assets() {
@@ -131,7 +153,18 @@ function ecdotica_ai_init() {
 }
 add_action('plugins_loaded', 'ecdotica_ai_init');
 
+// Hook de activación del plugin
 register_activation_hook(__FILE__, function() {
-    add_op
-            Ecdotica_Database::create_tables();tion('ecdotica_ai_auto_blockchain', 'no');
-});  
+    // Crear tablas de base de datos
+    Ecdotica_Database::create_tables();
+    
+    // Configuración por defecto
+    add_option('ecdotica_ai_auto_blockchain', 'no');
+    
+    error_log('Ecdotica: Plugin activado y base de datos inicializada');
+});
+
+// Hook de desactivación del plugin (opcional)
+register_deactivation_hook(__FILE__, function() {
+    error_log('Ecdotica: Plugin desactivado');
+});
