@@ -38,6 +38,13 @@ function ecdotica_render_admin_page() {
         <?php if ($analysis_result): ?>
             <div class="notice notice-success">
                 <p><strong>✓ Análisis completado exitosamente</strong></p>
+                <?php if (isset($analysis_result['attachment_id'])): ?>
+                    <p>📎 <strong>Archivo guardado en Medios:</strong> 
+                        <a href="<?php echo esc_url(admin_url('upload.php?item=' . $analysis_result['attachment_id'])); ?>" target="_blank">
+                            Ver en biblioteca de medios
+                        </a>
+                    </p>
+                <?php endif; ?>
             </div>
             
             <div class="ecdotica-results" style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; border-radius: 4px; margin: 20px 0;">
@@ -114,7 +121,7 @@ function ecdotica_render_admin_page() {
                                 <td><?php echo round($analysis_result['statistics']['avg_sentences_per_paragraph'], 1); ?></td>
                             </tr>
                             <tr>
-                                <td><strong>Longitud promedio de palabra:</strong></td>
+                                <td><strong>Longitud promedia de palabra:</strong></td>
                                 <td><?php echo round($analysis_result['statistics']['avg_word_length'], 1); ?> caracteres</td>
                             </tr>
                         </tbody>
@@ -131,7 +138,13 @@ function ecdotica_render_admin_page() {
                 <?php wp_nonce_field('ecdotica_analyze_action', 'ecdotica_nonce'); ?>
                 
                 <p>
-                    <input type="file" name="manuscript_file" accept=".pdf,.docx" required style="font-size: 14px;" />
+                    <label for="manuscript_author"><strong>Autor del manuscrito:</strong></label><br>
+                    <input type="text" id="manuscript_author" name="manuscript_author" style="width: 100%; max-width: 400px; padding: 5px;" placeholder="Nombre del autor" />
+                </p>
+                
+                <p>
+                    <label for="manuscript_file"><strong>Archivo:</strong></label><br>
+                    <input type="file" id="manuscript_file" name="manuscript_file" accept=".pdf,.docx" required style="font-size: 14px;" />
                 </p>
                 
                 <p>
@@ -148,82 +161,95 @@ function ecdotica_render_admin_page() {
                 <li><strong>API Status:</strong> <span id="ecdotica-api-status">Verificando...</span></li>
                 <li><strong>Formatos soportados:</strong> PDF, Microsoft Word (.docx)</li>
                 <li><strong>Tamaño máximo:</strong> 10MB</li>
+                <li><strong>Almacenamiento:</strong> Los manuscritos se guardan automáticamente en la Biblioteca de Medios</li>
                 <li><strong>Uso interno:</strong> Solo para el equipo editorial de Nuevo Milenio</li>
             </ul>
         </div>
 
-            <?php
-    // Obtener historial de manuscritos
-    $manager = new Ecdotica_Manuscript_Manager();
-    $manuscripts = $manager->get_all_manuscripts(20); // Últimos 20
-    ?>
-    
-    <?php if (!empty($manuscripts)): ?>
-    <div class="ecdotica-history" style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; border-radius: 4px; margin: 20px 0;">
-        <h2>📋 Historial de Análisis</h2>
-        <p style="margin-bottom: 15px;">Manuscritos analizados recientemente</p>
+        <?php
+        // Obtener historial de manuscritos
+        $manager = new Ecdotica_Manuscript_Manager();
+        $manuscripts = $manager->get_all_manuscripts(20); // Últimos 20
+        ?>
         
-        <table class="widefat" style="margin-top: 10px;">
-            <thead>
-                <tr>
-                    <th style="padding: 10px;">Título</th>
-                    <th style="padding: 10px;">Autor</th>
-                    <th style="padding: 10px;">Fecha</th>
-                    <th style="padding: 10px;">Estado</th>
-                    <th style="padding: 10px;">Calidad</th>
-                    <th style="padding: 10px;">Palabras</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($manuscripts as $manuscript): ?>
-                    <?php $analysis = $manager->get_latest_analysis($manuscript->id); ?>
+        <?php if (!empty($manuscripts)): ?>
+        <div class="ecdotica-history" style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; border-radius: 4px; margin: 20px 0;">
+            <h2>📋 Historial de Análisis</h2>
+            <p style="margin-bottom: 15px;">Manuscritos analizados recientemente</p>
+            
+            <table class="widefat" style="margin-top: 10px;">
+                <thead>
                     <tr>
-                        <td style="padding: 10px;">
-                            <strong><?php echo esc_html($manuscript->title); ?></strong>
-                        </td>
-                        <td style="padding: 10px;">
-                            <?php echo esc_html($manuscript->author); ?>
-                        </td>
-                        <td style="padding: 10px;">
-                            <?php echo date('d/m/Y', strtotime($manuscript->upload_date)); ?>
-                        </td>
-                        <td style="padding: 10px;">
-                            <?php
-                            $status_badges = [
-                                'accepted' => '<span style="background: #d4edda; color: #155724; padding: 3px 8px; border-radius: 3px; font-size: 12px;">✓ Aceptado</span>',
-                                'review' => '<span style="background: #fff3cd; color: #856404; padding: 3px 8px; border-radius: 3px; font-size: 12px;">⚠ Revisión</span>',
-                                'rejected' => '<span style="background: #f8d7da; color: #721c24; padding: 3px 8px; border-radius: 3px; font-size: 12px;">✗ Rechazado</span>',
-                                'pending' => '<span style="background: #e7f3ff; color: #004085; padding: 3px 8px; border-radius: 3px; font-size: 12px;">⏳ Pendiente</span>'
-                            ];
-                            echo $status_badges[$manuscript->status] ?? $status_badges['pending'];
-                            ?>
-                        </td>
-                        <td style="padding: 10px;">
-                            <?php if ($analysis): ?>
-                                <strong style="color: <?php 
-                                    if ($analysis->quality_score >= 80) echo '#28a745';
-                                    elseif ($analysis->quality_score >= 60) echo '#ffc107';
-                                    else echo '#dc3545';
-                                ?>">
-                                    <?php echo $analysis->quality_score; ?>/100
-                                </strong>
-                            <?php else: ?>
-                                <span style="color: #999;">-</span>
-                            <?php endif; ?>
-                        </td>
-                        <td style="padding: 10px;">
-                            <?php if ($analysis): ?>
-                                <?php echo number_format($analysis->word_count); ?>
-                            <?php else: ?>
-                                <span style="color: #999;">-</span>
-                            <?php endif; ?>
-                        </td>
+                        <th style="padding: 10px;">Título</th>
+                        <th style="padding: 10px;">Autor</th>
+                        <th style="padding: 10px;">Fecha</th>
+                        <th style="padding: 10px;">Estado</th>
+                        <th style="padding: 10px;">Calidad</th>
+                        <th style="padding: 10px;">Palabras</th>
+                        <th style="padding: 10px;">Archivo</th>
                     </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
-    <?php endif; ?>
+                </thead>
+                <tbody>
+                    <?php foreach ($manuscripts as $manuscript): ?>
+                        <?php $analysis = $manager->get_latest_analysis($manuscript->id); ?>
+                        <tr>
+                            <td style="padding: 10px;">
+                                <strong><?php echo esc_html($manuscript->title); ?></strong>
+                            </td>
+                            <td style="padding: 10px;">
+                                <?php echo esc_html($manuscript->author); ?>
+                            </td>
+                            <td style="padding: 10px;">
+                                <?php echo date('d/m/Y', strtotime($manuscript->upload_date)); ?>
+                            </td>
+                            <td style="padding: 10px;">
+                                <?php
+                                $status_badges = [
+                                    'accepted' => '<span style="background: #d4edda; color: #155724; padding: 3px 8px; border-radius: 3px; font-size: 12px;">✓ Aceptado</span>',
+                                    'review' => '<span style="background: #fff3cd; color: #856404; padding: 3px 8px; border-radius: 3px; font-size: 12px;">⚠ Revisión</span>',
+                                    'rejected' => '<span style="background: #f8d7da; color: #721c24; padding: 3px 8px; border-radius: 3px; font-size: 12px;">✗ Rechazado</span>',
+                                    'pending' => '<span style="background: #e7f3ff; color: #004085; padding: 3px 8px; border-radius: 3px; font-size: 12px;">⏳ Pendiente</span>'
+                                ];
+                                echo $status_badges[$manuscript->status] ?? $status_badges['pending'];
+                                ?>
+                            </td>
+                            <td style="padding: 10px;">
+                                <?php if ($analysis): ?>
+                                    <strong style="color: <?php 
+                                        if ($analysis->quality_score >= 80) echo '#28a745';
+                                        elseif ($analysis->quality_score >= 60) echo '#ffc107';
+                                        else echo '#dc3545';
+                                    ?>">
+                                        <?php echo $analysis->quality_score; ?>/100
+                                    </strong>
+                                <?php else: ?>
+                                    <span style="color: #999;">-</span>
+                                <?php endif; ?>
+                            </td>
+                            <td style="padding: 10px;">
+                                <?php if ($analysis): ?>
+                                    <?php echo number_format($analysis->word_count); ?>
+                                <?php else: ?>
+                                    <span style="color: #999;">-</span>
+                                <?php endif; ?>
+                            </td>
+                            <td style="padding: 10px;">
+                                <?php if (!empty($manuscript->media_id)): ?>
+                                    <a href="<?php echo esc_url(admin_url('upload.php?item=' . $manuscript->media_id)); ?>" 
+                                       target="_blank" 
+                                       class="button button-small">
+                                        📎 Ver archivo
+                                    </a>
+                                <?php else: ?>
+                                    <span style="color: #999;">-</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php endif; ?>
     </div>
     
     <script>
@@ -297,38 +323,129 @@ function ecdotica_process_manuscript($file) {
         return new WP_Error('api_error', 'Respuesta inválida de la API.');
     }
 
-            
-        // Guardar en base de datos
-        $manager = new Ecdotica_Manuscript_Manager();
+    // ============================
+    // GUARDAR MANUSCRITO EN MEDIOS
+    // ============================
+    
+    // 1. Subir archivo a la carpeta de uploads de WordPress
+    require_once(ABSPATH . 'wp-admin/includes/file.php');
+    require_once(ABSPATH . 'wp-admin/includes/media.php');
+    require_once(ABSPATH . 'wp-admin/includes/image.php');
+    
+    // Preparar nombre de archivo
+    $upload_overrides = array(
+        'test_form' => false,
+        'test_size' => true,
+        'test_upload' => true
+    );
+    
+    // Subir archivo usando la función nativa de WordPress
+    $uploaded_file = wp_handle_upload($file, $upload_overrides);
+    
+    if (isset($uploaded_file['error'])) {
+        error_log('Ecdotica: Error al subir archivo a Medios: ' . $uploaded_file['error']);
+    }
+    
+    $attachment_id = null;
+    $media_id = null;
+    
+    // 2. Si se subió correctamente, crear attachment en Media Library
+    if (isset($uploaded_file['file'])) {
+        $file_path = $uploaded_file['file'];
+        $file_url = $uploaded_file['url'];
+        $file_type = $uploaded_file['type'];
         
-        // Guardar manuscrito
-        $manuscript_data = array(
-            'title' => sanitize_text_field($_FILES['manuscript_file']['name']),
-            'author' => 'Autor desconocido', // TODO: campo de autor en formulario
-            'original_filename' => $_FILES['manuscript_file']['name'],
-            'file_path' => $upload['file'],
-            'file_type' => $upload['type'],
-            'file_size' => $upload['size'],
-            'notes' => ''
+        // Obtener autor del formulario
+        $author_name = isset($_POST['manuscript_author']) && !empty($_POST['manuscript_author']) 
+            ? sanitize_text_field($_POST['manuscript_author']) 
+            : 'Autor desconocido';
+        
+        // Preparar título descriptivo
+        $file_title = sanitize_text_field($file['name']);
+        $editorial_status = $result['editorial_status'];
+        $quality_score = isset($result['quality_score']) ? $result['quality_score'] : 0;
+        
+        // Crear el attachment
+        $attachment_data = array(
+            'post_mime_type' => $file_type,
+            'post_title'     => $file_title,
+            'post_content'   => '',
+            'post_excerpt'   => sprintf(
+                'Análisis Ecdótica - Autor: %s | Estado: %s | Calidad: %d/100 | Palabras: %d',
+                $author_name,
+                $editorial_status,
+                $quality_score,
+                $result['statistics']['words']
+            ),
+            'post_status'    => 'inherit'
         );
-        $manuscript_id = $manager->save_manuscript($manuscript_data);
         
-        // Guardar análisis
-        if ($manuscript_id) {
-            $analysis_data = array(
-                'word_count' => $result['statistics']['words'],
-                'sentence_count' => $result['statistics']['sentences'],
-                'paragraph_count' => $result['statistics']['paragraphs'],
-                'quality_score' => $result['statistics']['quality_score'],
-                'decision' => $result['decision'],
-                'message' => $result['message'],
-                'problems' => implode(', ', $result['problems']),
-                'avg_words_per_sentence' => round($result['statistics']['words'] / max($result['statistics']['sentences'], 1), 2),
-                'avg_words_per_paragraph' => round($result['statistics']['words'] / max($result['statistics']['paragraphs'], 1), 2),
-                'readability_score' => 0 // TODO: calcular
-            );
-            $manager->save_analysis($manuscript_id, $analysis_data);
+        $attachment_id = wp_insert_attachment($attachment_data, $file_path);
+        
+        if (!is_wp_error($attachment_id)) {
+            // Generar metadata del attachment
+            $attachment_metadata = wp_generate_attachment_metadata($attachment_id, $file_path);
+            wp_update_attachment_metadata($attachment_id, $attachment_metadata);
+            
+            // Agregar metadatos personalizados para el análisis
+            update_post_meta($attachment_id, '_ecdotica_analysis_status', $editorial_status);
+            update_post_meta($attachment_id, '_ecdotica_quality_score', $quality_score);
+            update_post_meta($attachment_id, '_ecdotica_word_count', $result['statistics']['words']);
+            update_post_meta($attachment_id, '_ecdotica_author', $author_name);
+            update_post_meta($attachment_id, '_ecdotica_analyzed_date', current_time('mysql'));
+            
+            $media_id = $attachment_id;
+            
+            error_log('Ecdotica: Manuscrito guardado en Medios con ID: ' . $attachment_id);
+        } else {
+            error_log('Ecdotica: Error al crear attachment: ' . $attachment_id->get_error_message());
         }
+    }
+    
+    // ============================
+    // GUARDAR EN BASE DE DATOS
+    // ============================
+    
+    $manager = new Ecdotica_Manuscript_Manager();
+    
+    // Obtener autor del formulario
+    $author_name = isset($_POST['manuscript_author']) && !empty($_POST['manuscript_author']) 
+        ? sanitize_text_field($_POST['manuscript_author']) 
+        : 'Autor desconocido';
+    
+    // Guardar manuscrito
+    $manuscript_data = array(
+        'title' => sanitize_text_field($file['name']),
+        'author' => $author_name,
+        'original_filename' => $file['name'],
+        'file_path' => isset($uploaded_file['file']) ? $uploaded_file['file'] : '',
+        'file_type' => $mime_type,
+        'file_size' => $file['size'],
+        'notes' => '',
+        'media_id' => $media_id // Nuevo: ID del attachment en Medios
+    );
+    $manuscript_id = $manager->save_manuscript($manuscript_data);
+    
+    // Guardar análisis
+    if ($manuscript_id) {
+        $analysis_data = array(
+            'word_count' => $result['statistics']['words'],
+            'sentence_count' => $result['statistics']['sentences'],
+            'paragraph_count' => $result['statistics']['paragraphs'],
+            'quality_score' => isset($result['quality_score']) ? $result['quality_score'] : 0,
+            'decision' => $result['editorial_status'],
+            'message' => isset($result['recommendation']) ? $result['recommendation'] : '',
+            'problems' => isset($result['issues']) ? implode(', ', $result['issues']) : '',
+            'avg_words_per_sentence' => round($result['statistics']['words'] / max($result['statistics']['sentences'], 1), 2),
+            'avg_words_per_paragraph' => round($result['statistics']['words'] / max($result['statistics']['paragraphs'], 1), 2),
+            'readability_score' => 0
+        );
+        $manager->save_analysis($manuscript_id, $analysis_data);
+    }
+    
+    // Agregar attachment_id al resultado para mostrarlo en la interfaz
+    $result['attachment_id'] = $attachment_id;
+    
     return $result;
 }
 ?>
