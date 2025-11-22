@@ -28,9 +28,11 @@ class Ecdotica_Database {
             uploaded_by bigint(20) NOT NULL,
             status varchar(50) DEFAULT 'pending',
             notes text DEFAULT NULL,
+            media_id bigint(20) DEFAULT NULL COMMENT 'ID del attachment en WordPress Media Library',
             PRIMARY KEY (id),
             KEY status (status),
-            KEY upload_date (upload_date)
+            KEY upload_date (upload_date),
+            KEY media_id (media_id)
         ) $charset_collate;";
         
         // Table for analysis results
@@ -94,7 +96,34 @@ class Ecdotica_Database {
         dbDelta($sql_versions);
         
         // Set database version
-        update_option('ecdotica_db_version', '1.0.0');
+        update_option('ecdotica_db_version', '1.1.0');
+    }
+    
+    /**
+     * Update database schema to add media_id field if it doesn't exist
+     */
+    public static function update_schema() {
+        global $wpdb;
+        $table_manuscripts = $wpdb->prefix . 'ecdotica_manuscripts';
+        
+        // Check if media_id column exists
+        $column_exists = $wpdb->get_results(
+            $wpdb->prepare(
+                "SHOW COLUMNS FROM `{$table_manuscripts}` LIKE %s",
+                'media_id'
+            )
+        );
+        
+        // Add media_id column if it doesn't exist
+        if (empty($column_exists)) {
+            $wpdb->query(
+                "ALTER TABLE `{$table_manuscripts}` 
+                ADD COLUMN media_id bigint(20) DEFAULT NULL COMMENT 'ID del attachment en WordPress Media Library' AFTER notes,
+                ADD KEY media_id (media_id)"
+            );
+            
+            error_log('Ecdotica: Campo media_id agregado a la tabla de manuscritos');
+        }
     }
     
     public static function drop_tables() {
